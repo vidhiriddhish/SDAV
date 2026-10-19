@@ -1,0 +1,175 @@
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Create built-in sample data
+np.random.seed(42)
+n = 300
+
+brands = ['Hero', 'Honda', 'Bajaj', 'TVS', 'Royal Enfield',
+          'Yamaha', 'Suzuki', 'KTM']
+fuel_types = ['Petrol', 'Electric', 'CNG']
+bike_types = ['Commuter', 'Sports', 'Scooter', 'Cruiser']
+states = ['Maharashtra', 'Gujarat', 'Delhi', 'Karnataka',
+          'Tamil Nadu', 'Rajasthan']
+
+data = pd.DataFrame({
+    'Brand': np.random.choice(brands, n),
+    'Year': np.random.randint(2019, 2026, n),
+    'Fuel Type': np.random.choice(
+        fuel_types, n, p=[0.78, 0.17, 0.05]),
+    'Bike Type': np.random.choice(bike_types, n),
+    'State': np.random.choice(states, n),
+    'Price': np.random.randint(50000, 250001, n),
+    'Units Sold': np.random.randint(1, 20, n)
+})
+
+data['Sales'] = data['Price'] * data['Units Sold']
+
+# 2. Calculate dashboard KPIs
+total_sales = data['Sales'].sum()
+total_bikes = data['Units Sold'].sum()
+avg_price = data['Price'].mean()
+
+# 3. Create dashboard layout
+fig = plt.figure(figsize=(16, 12))
+fig.patch.set_facecolor('#F3F6FA')
+
+fig.suptitle('INDIA BIKE SALES ANALYTICS DASHBOARD',
+             fontsize=20, fontweight='bold', color='#17365D', y=0.98)
+
+gs = fig.add_gridspec(
+    4, 4, left=0.06, right=0.96,
+    top=0.91, bottom=0.07, hspace=0.55, wspace=0.45
+)
+
+# 4. KPI cards
+kpis = [
+    ('TOTAL SALES', f'Rs. {total_sales:,.0f}'),
+    ('TOTAL BIKES SOLD', f'{total_bikes:,}'),
+    ('AVERAGE BIKE PRICE', f'Rs. {avg_price:,.0f}')
+]
+
+for i, (title, value) in enumerate(kpis):
+    ax = fig.add_subplot(gs[0, i])
+    ax.set_facecolor('#DCEAF7')
+    ax.text(0.5, 0.68, title, ha='center',
+            fontsize=11, fontweight='bold', color='#17365D')
+    ax.text(0.5, 0.30, value, ha='center',
+            fontsize=15, fontweight='bold', color='#087E8B')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+# 5. Bar chart: Sales by brand
+ax1 = fig.add_subplot(gs[1, :2])
+brand_sales = data.groupby('Brand')['Sales'].sum().sort_values()
+
+ax1.barh(brand_sales.index, brand_sales.values, color='#3987C9')
+ax1.set_title('Sales by Brand', fontweight='bold')
+ax1.set_xlabel('Sales Revenue (Rs.)')
+ax1.grid(axis='x', alpha=0.25)
+ax1.set_axisbelow(True)
+
+# 6. Line chart: Sales by year
+ax2 = fig.add_subplot(gs[1, 2:])
+year_sales = data.groupby('Year')['Sales'].sum()
+
+ax2.plot(year_sales.index, year_sales.values,
+         marker='o', linewidth=2.5, color='#E07A5F')
+ax2.set_title('Sales Trend by Year', fontweight='bold')
+ax2.set_xlabel('Year')
+ax2.set_ylabel('Sales (Rs.)')
+ax2.grid(alpha=0.25)
+ax2.set_xticks(year_sales.index)
+
+# 7. Donut chart: Bikes sold by fuel type
+ax3 = fig.add_subplot(gs[2, :2])
+fuel_sales = data.groupby('Fuel Type')['Units Sold'].sum()
+
+ax3.pie(
+    fuel_sales.values,
+    labels=fuel_sales.index,
+    autopct='%1.1f%%',
+    startangle=90,
+    wedgeprops={'width': 0.42, 'edgecolor': 'white'},
+    colors=['#3987C9', '#45B69C', '#F2CC8F']
+)
+ax3.set_title('Bikes Sold by Fuel Type', fontweight='bold')
+
+# 8. Box plot: Price by bike type
+ax4 = fig.add_subplot(gs[2, 2:])
+box_data = [
+    data.loc[data['Bike Type'] == t, 'Price'].values
+    for t in bike_types
+]
+
+ax4.boxplot(
+    box_data, tick_labels=bike_types,
+    patch_artist=True,
+    boxprops=dict(facecolor='#A8DADC'),
+    medianprops=dict(color='#D62828', linewidth=2)
+)
+ax4.set_title('Price Spread by Bike Type', fontweight='bold')
+ax4.set_ylabel('Price (Rs.)')
+ax4.grid(axis='y', alpha=0.25)
+ax4.tick_params(axis='x', rotation=10)
+
+# 9. Summary table: Sales by state
+ax5 = fig.add_subplot(gs[3, :2])
+ax5.axis('off')
+
+state_summary = (
+    data.groupby('State')
+    .agg(Bikes_Sold=('Units Sold', 'sum'),
+         Total_Sales=('Sales', 'sum'))
+    .sort_values('Total_Sales', ascending=False)
+    .reset_index()
+)
+
+state_summary['Total_Sales'] = state_summary['Total_Sales'].map(
+    lambda x: f'Rs. {x:,.0f}'
+)
+
+table1 = ax5.table(
+    cellText=state_summary.values,
+    colLabels=['State', 'Bikes Sold', 'Total Sales'],
+    loc='center', cellLoc='center'
+)
+table1.auto_set_font_size(False)
+table1.set_fontsize(9)
+table1.scale(1.1, 1.5)
+ax5.set_title('Sales Summary by State',
+              fontweight='bold', pad=15)
+
+# 10. Summary table: Brand performance
+ax6 = fig.add_subplot(gs[3, 2:])
+ax6.axis('off')
+
+brand_summary = (
+    data.groupby('Brand')
+    .agg(Bikes_Sold=('Units Sold', 'sum'),
+         Average_Price=('Price', 'mean'))
+    .sort_values('Bikes_Sold', ascending=False)
+    .head(6)
+    .reset_index()
+)
+
+brand_summary['Average_Price'] = brand_summary['Average_Price'].map(
+    lambda x: f'Rs. {x:,.0f}'
+)
+
+table2 = ax6.table(
+    cellText=brand_summary.values,
+    colLabels=['Brand', 'Bikes Sold', 'Average Price'],
+    loc='center', cellLoc='center'
+)
+table2.auto_set_font_size(False)
+table2.set_fontsize(9)
+table2.scale(1.1, 1.5)
+ax6.set_title('Top Brands Summary',
+              fontweight='bold', pad=15)
+
+plt.show()
