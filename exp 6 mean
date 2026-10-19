@@ -1,0 +1,120 @@
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Built-in sample data
+data = pd.DataFrame({
+    'Brand': ['Honda', 'Hero', 'TVS', 'Bajaj', 'Yamaha',
+              'KTM', 'Suzuki', 'Royal Enfield', 'Honda',
+              'Hero', 'Yamaha', 'Bajaj', 'TVS', 'KTM',
+              'Royal Enfield'],
+    'Type': ['Small', 'Small', 'Small', 'Medium', 'Sporty',
+             'Sporty', 'Medium', 'Cruiser', 'Medium',
+             'Small', 'Sporty', 'Medium', 'Small', 'Sporty',
+             'Cruiser'],
+    'Price': [50000, 60000, 55000, 90000, 150000,
+              180000, 110000, 200000, 95000, 65000,
+              160000, 85000, 58000, 190000, 220000],
+    'RPM': [6500, 7000, 6800, 7500, 9500, 10500, 8000,
+            6000, 7200, 6900, 9800, 7400, 6700, 11000, 5800]
+})
+
+# 2. Descriptive statistics
+mean_price = data['Price'].mean()
+median_price = data['Price'].median()
+mode_price = data['Price'].mode()[0]
+std_price = data['Price'].std()
+
+print("DESCRIPTIVE STATISTICS")
+print("Mean Price:", round(mean_price, 2))
+print("Median Price:", median_price)
+print("Mode Price:", mode_price)
+print("Standard Deviation:", round(std_price, 2))
+print("\nSUMMARY TABLE")
+print(data.describe())
+
+# 3. Dashboard layout
+fig = plt.figure(figsize=(15, 10))
+fig.suptitle("BIKE PRICE ANALYSIS DASHBOARD",
+             fontsize=19, fontweight='bold')
+
+gs = fig.add_gridspec(3, 4, hspace=0.5, wspace=0.4)
+
+# 4. KPI cards
+kpis = [
+    ("Mean Price", f"Rs. {mean_price:,.0f}"),
+    ("Median Price", f"Rs. {median_price:,.0f}"),
+    ("Mode Price", f"Rs. {mode_price:,.0f}"),
+    ("Std Deviation", f"Rs. {std_price:,.0f}")
+]
+
+for i, (title, value) in enumerate(kpis):
+    ax = fig.add_subplot(gs[0, i])
+    ax.set_facecolor('#DCEAF7')
+    ax.text(0.5, 0.65, title, ha='center',
+            fontsize=11, fontweight='bold')
+    ax.text(0.5, 0.35, value, ha='center',
+            fontsize=13, color='#087E8B')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+# 5. Bar chart: Average price by type
+ax1 = fig.add_subplot(gs[1, :2])
+avg_price = data.groupby('Type')['Price'].mean()
+
+ax1.bar(avg_price.index, avg_price.values, color='steelblue')
+ax1.set_title("Average Price by Bike Type")
+ax1.set_xlabel("Bike Type")
+ax1.set_ylabel("Average Price (Rs.)")
+ax1.tick_params(axis='x', rotation=15)
+ax1.grid(axis='y', alpha=0.25)
+
+# 6. Bar chart: Sales by brand
+ax2 = fig.add_subplot(gs[1, 2:])
+brand_price = data.groupby('Brand')['Price'].sum().sort_values()
+
+ax2.barh(brand_price.index, brand_price.values, color='teal')
+ax2.set_title("Total Price by Brand")
+ax2.set_xlabel("Total Price (Rs.)")
+ax2.grid(axis='x', alpha=0.25)
+
+# 7. Box plot: Price by bike type
+ax3 = fig.add_subplot(gs[2, :2])
+types = data['Type'].unique()
+box_data = [
+    data.loc[data['Type'] == t, 'Price'].values
+    for t in types
+]
+
+ax3.boxplot(
+    box_data, tick_labels=types, patch_artist=True,
+    boxprops=dict(facecolor='skyblue'),
+    medianprops=dict(color='red', linewidth=2)
+)
+ax3.set_title("Box Plot of Price by Bike Type")
+ax3.set_ylabel("Price (Rs.)")
+ax3.tick_params(axis='x', rotation=15)
+ax3.grid(axis='y', alpha=0.25)
+
+# 8. Histogram: Price distribution
+ax4 = fig.add_subplot(gs[2, 2:])
+ax4.hist(data['Price'], bins=8, color='orange',
+         edgecolor='black')
+ax4.set_title("Distribution of Bike Prices")
+ax4.set_xlabel("Price (Rs.)")
+ax4.set_ylabel("Frequency")
+ax4.grid(axis='y', alpha=0.25)
+
+plt.show()
+
+# 9. Additional summary by bike type
+print("\nSUMMARY BY BIKE TYPE")
+print(data.groupby('Type').agg(
+    Average_Price=('Price', 'mean'),
+    Median_Price=('Price', 'median'),
+    Average_RPM=('RPM', 'mean'),
+    Number_of_Bikes=('Brand', 'count')
+).round(2))
