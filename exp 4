@@ -1,0 +1,49 @@
+1) basic histogram  
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+data = np.random.randn(1000)
+
+plt.hist(data, bins=30, color='skyblue')
+plt.title("Basic Histogram")
+plt.xlabel("Values")
+plt.ylabel("Frequency")
+plt.show() 
+
+2) exploded pie chart 
+
+import matplotlib.pyplot as plt
+
+membership = ['Silver', 'Gold', 'Platinum']
+customers = [60, 30, 10]
+explode = [0.05, 0.05, 0.12]
+
+plt.pie(customers, labels=membership, autopct='%1.1f%%',
+        explode=explode, shadow=True, startangle=90)
+plt.title("Membership Type Distribution")
+plt.show() 
+
+3) donut pie chart 
+
+import matplotlib.pyplot as plt
+
+payment = ['UPI', 'Cash', 'Card', 'Wallet']
+sales = [36, 24, 25, 15]
+
+plt.pie(sales, labels=payment, autopct='%1.1f%%',
+        startangle=90, wedgeprops={'width': 0.4})
+plt.title("Sales by Payment Mode")
+plt.show() 
+
+4) box plot 
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+data = np.random.normal(50, 10, 100)
+
+plt.boxplot(data, patch_artist=True)
+plt.title("Box Plot")
+plt.ylabel("Values")
+plt.show()
